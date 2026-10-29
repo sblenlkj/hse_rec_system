@@ -19,17 +19,17 @@
 
 ## Ключевое правило валидации
 
-Используем **одну глобальную временную точку разделения** для всего датасета.
+В предоставленных данных `timestamp` является относительной координатой внутри истории пользователя, а не общей календарной датой. Поэтому абсолютный global timestamp cutoff использовать нельзя.
 
-Все события до cutoff относятся к train, все события после cutoff — к validation/test.
+Основной leakage-safe protocol: **chronological 90/10 per user** — для каждого пользователя первые 90% событий по timestamp идут в train, последние 10% в validation.
 
 Нельзя:
-- делать отдельный temporal split независимо для каждого пользователя;
-- строить признаки по событиям, произошедшим после cutoff;
-- считать popularity, item statistics, user statistics, embeddings или candidate scores с использованием будущих данных;
-- случайно смешивать будущее и прошлое при подготовке последовательностей.
+- строить признаки по validation-событиям;
+- считать popularity, item statistics, user statistics, embeddings или candidate scores с использованием holdout;
+- смешивать train и validation при подготовке последовательностей;
+- сравнивать эксперименты, полученные на разных split, как будто это одна метрика.
 
-Это правило нужно соблюдать во всех моделях и feature pipelines, чтобы локальная метрика не была завышена из-за leakage.
+Дополнительно позже проверим masked 10% split как возможную имитацию скрытого Kaggle test, но не будем заменять им основной leakage-safe protocol без явной причины.
 
 ## Планируемые направления
 
@@ -94,7 +94,7 @@ hse_recsys_competition/
 
 1. EDA файлов `events.csv`, `user_features.csv`, `item_features.csv`.
 2. Проверка времени, пользователей, фильмов, sparsity и распределения ratings.
-3. Выбор глобального temporal cutoff.
+3. Фиксация leakage-safe chronological 90/10 split.
 4. Реализация локального `Recall@10`.
 5. Popularity baseline.
 6. ALS / ItemKNN.

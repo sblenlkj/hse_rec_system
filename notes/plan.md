@@ -54,46 +54,46 @@
 
 ## 2. Валидация
 
-### Основной принцип
+### Основной protocol
 
-Выбираем **один глобальный temporal cutoff** `T`.
+`timestamp` не является общей календарной шкалой: это относительный порядок внутри пользовательской истории.
 
-```text
-event.timestamp < T   -> train
-event.timestamp >= T  -> validation
-```
+Поэтому основной split:
 
-Cutoff выбираем после анализа плотности событий так, чтобы:
-- validation была достаточно большой;
-- у разумного числа пользователей был ground truth;
-- training history оставалась достаточной;
-- split максимально напоминал скрытый Kaggle test.
+1. сортируем события каждого пользователя по `timestamp`;
+2. первые 90% истории -> train;
+3. последние 10% -> validation.
 
-### Защита от leakage
+Этот protocol фиксируем для сравнения всех первых моделей.
 
-На train side рассчитываются:
-- user statistics;
-- item statistics;
+### Leakage invariants
+
+Только train-side данные используются для:
+- user/item statistics;
 - popularity;
-- similarity matrices;
+- similarity;
 - ALS factors;
 - sequential histories;
-- features;
-- candidate generators.
+- candidate generation;
+- ranking features.
 
-Validation events используются только как ground truth.
+Validation используется только как ground truth.
 
-Никакая статистика из validation не должна попадать в train pipeline.
+Любая функция обучения/feature engineering должна получать train явно, а не полный `events`.
+
+### Дополнительный diagnostic split
+
+В данных около 10% пропущенных timestamp-позиций внутри историй. Это может означать masked hidden interactions в Kaggle test, но пока это лишь гипотеза.
+
+После получения нескольких честных baseline можно отдельно проверить masked-10% validation как diagnostic protocol и сравнить направление изменений с Kaggle. Основной chronological split при этом сохраняется.
 
 ### Локальная метрика
 
-Реализуем `Recall@10` максимально близко к Kaggle.
-
-Отдельно фиксируем:
-- micro/macro трактовку, если она неочевидна;
-- как обрабатываются пользователи без ground truth;
-- исключаются ли уже просмотренные / оценённые items;
-- допускаются ли повторные рекомендации.
+Реализуем `Recall@10` максимально близко к Kaggle и отдельно фиксируем правила:
+- macro/micro;
+- пользователи без ground truth;
+- seen-item filtering;
+- отсутствие duplicate recommendations.
 
 ---
 
@@ -301,7 +301,7 @@ ALS ∪ KNN ∪ SASRec  Recall@200 = ...
 
 1. Разобрать schema всех CSV.
 2. Провести EDA.
-3. Найти корректный global temporal cutoff.
+3. Зафиксировать chronological 90/10 per-user split.
 4. Реализовать leakage-safe split.
 5. Реализовать Recall@10.
 6. Получить Popularity baseline.
