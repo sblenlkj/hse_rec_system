@@ -17,7 +17,13 @@ class PopularityRecommender:
         self.ranking: np.ndarray | None = None
         self.seen: dict[int, set[int]] = {}
 
-    def fit(self, train_events: np.ndarray, n_items: int | None = None) -> "PopularityRecommender":
+    def fit(
+        self,
+        train_events: np.ndarray,
+        n_items: int | None = None,
+        n_users: int | None = None,
+    ) -> "PopularityRecommender":
+        del n_users  # Accepted for the shared recommender fit interface.
         if n_items is None:
             n_items = int(train_events[:, ITEM].max()) + 1
         selected = train_events

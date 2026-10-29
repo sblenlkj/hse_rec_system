@@ -310,3 +310,60 @@ ALS ∪ KNN ∪ SASRec  Recall@200 = ...
 9. Получить SASRec через RePlay.
 10. Сравнить local и Kaggle.
 11. После первых результатов сформировать следующую волну гипотез.
+
+
+---
+
+## 12. Обязательный финальный маршрут
+
+После Task 03 приоритет фиксирован:
+
+### Task 04 — Transformer baseline
+- SASRec через RePlay как первый выбор;
+- тот же leakage-safe validation protocol;
+- local Recall@10;
+- submission;
+- сравнение с classical best.
+
+Если SASRec технически недоступен, использовать BERT4Rec или другую корректную библиотечную реализацию.
+
+### Task 05 — Two-stage recommender
+Обязательная архитектура:
+
+```text
+multiple candidate generators
+→ union top-N candidates
+→ model/user/item/user-item features
+→ CatBoost/LightGBM reranker
+→ top-10
+```
+
+Минимальный candidate pool:
+- transformer;
+- ALS;
+- ItemKNN;
+- popularity как fallback/source.
+
+Минимальные ranking features:
+- source flag;
+- score и rank каждой модели;
+- item popularity;
+- genre affinity;
+- несколько user/item aggregates.
+
+Главная диагностическая метрика до ranker:
+- Candidate Recall@N.
+
+Главная итоговая метрика:
+- Recall@10.
+
+### Task 06 — optional final ensemble/tuning
+Только после того, как transformer и two-stage pipeline уже реализованы.
+
+Можно:
+- BERT4Rec vs SASRec;
+- простой blend;
+- небольшой hyperparameter tuning;
+- postprocessing.
+
+Нельзя откладывать two-stage pipeline ради большого числа дополнительных single-model экспериментов.

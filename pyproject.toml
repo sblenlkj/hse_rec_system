@@ -13,10 +13,25 @@ dependencies = [
     "scipy>=1.14,<2",
 ]
 
+[project.optional-dependencies]
+sasrec = [
+    "pandas>=2.3,<2.4",
+    "pyarrow>=23,<24",
+    "replay-rec[torch]==0.22.0",
+]
+ranking = [
+    "catboost==1.2.10",
+    "pandas>=2.3,<2.4",
+    "pyarrow>=23,<24",
+]
+
 [project.scripts]
 recsys = "recsys:main"
 recsys-baseline = "recsys.pipeline:main"
 recsys-features-cf = "recsys.feature_pipeline:main"
+recsys-als-diagnostic = "recsys.als_pipeline:main"
+recsys-sasrec = "recsys.sasrec_pipeline:main"
+recsys-two-stage = "recsys.two_stage_pipeline:main"
 
 [build-system]
 requires = ["uv_build>=0.12.11,<0.13.0"]
